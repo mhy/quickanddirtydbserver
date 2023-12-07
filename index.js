@@ -17,6 +17,8 @@ const column_id = 'id';
 const column_temp = 'temperature';
 const column_spin = 'spin';
 const column_count = 'count';
+const column_name = 'name';
+const column_path = 'path';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,7 +32,9 @@ let db = new sqlite3.Database('test_db', (err) => {
             ${column_id} INTEGER PRIMARY KEY NOT NULL, \
             ${column_temp} INTEGER NOT NULL, \
             ${column_spin} INTEGER NOT NULL, \
-            ${column_count} INTEGER NOT NULL
+            ${column_count} INTEGER NOT NULL, \
+            ${column_name} VARCHAR(20), \
+            ${column_path} VARCHAR(100)
             )`, (err) => {
          if (err) {
             console.log('Table already exists' + err.message);
@@ -100,6 +104,46 @@ app.patch("/increase_count/", (req, res, next) => {
    }
    let sql = `UPDATE ${table_name} set ${column_count} = ${column_count} + 1 WHERE ${column_id} = ?`;
    let params = [data.id];
+
+   db.run(sql, params, (err, result) => {
+      if (err) {
+         res.status(400).json({ "error": res.message })
+         return;
+      }
+      res.json({
+         'result': "success"
+      });
+   });
+});
+
+// curl -d "id=2&name=ThisIsIt" -X PATCH http://localhost:8080/update_name/
+app.patch("/update_name/", (req, res, next) => {
+   let data = {
+      id: req.body.id,
+      name: req.body.name
+   }
+   let sql = `UPDATE ${table_name} set ${column_name} = ? WHERE ${column_id} = ?`;
+   let params = [data.name, data.id];
+
+   db.run(sql, params, (err, result) => {
+      if (err) {
+         res.status(400).json({ "error": res.message })
+         return;
+      }
+      res.json({
+         'result': "success"
+      });
+   });
+});
+
+// curl -d "id=2&path=http://this.is.test" -X PATCH http://localhost:8080/update_path/
+app.patch("/update_path/", (req, res, next) => {
+   let data = {
+      id: req.body.id,
+      path: req.body.path
+   }
+   let sql = `UPDATE ${table_name} set ${column_path} = ? WHERE ${column_id} = ?`;
+   let params = [data.path, data.id];
 
    db.run(sql, params, (err, result) => {
       if (err) {
