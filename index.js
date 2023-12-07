@@ -19,6 +19,7 @@ const column_spin = 'spin';
 const column_count = 'count';
 const column_name = 'name';
 const column_path = 'path';
+const column_type = 'type';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,6 +35,7 @@ let db = new sqlite3.Database('test_db', (err) => {
             ${column_spin} INTEGER NOT NULL, \
             ${column_count} INTEGER NOT NULL, \
             ${column_name} VARCHAR(20), \
+            ${column_type} VARCHAR(10), \
             ${column_path} VARCHAR(100)
             )`, (err) => {
          if (err) {
@@ -69,7 +71,7 @@ app.post('/add/', (req, res, next) => {
             'id': data.id,
             'temp': data.temp,
             'spin': data.spin,
-            'count': 1
+            'count': 0
          }
       });
    });
@@ -156,6 +158,27 @@ app.patch("/update_path/", (req, res, next) => {
    });
 });
 
+// curl -d "id=2&type=pants" -X PATCH http://localhost:8080/update_type/
+app.patch("/update_type/", (req, res, next) => {
+   let data = {
+      id: req.body.id,
+      type: req.body.type
+   }
+   let sql = `UPDATE ${table_name} set ${column_type} = ? WHERE ${column_id} = ?`;
+   let params = [data.type, data.id];
+
+   db.run(sql, params, (err, result) => {
+      if (err) {
+         res.status(400).json({ "error": res.message })
+         return;
+      }
+      res.json({
+         'result': "success"
+      });
+   });
+});
+
+
 // http://localhost:8080/all_items/
 app.get('/all_items/', (req, res, next) => {
    let sql = `SELECT * from ${table_name}`
@@ -188,7 +211,7 @@ app.get('/item/:id', (req, res, next) => {
    });
 });
 
-// http://localhost:8080/delete/3
+// curl -X DELETE http://192.168.1.47:8080/delete/3
 app.delete('/delete/:id', (req, res, next) => {
    let sql = `DELETE FROM ${table_name} WHERE id = ?`
    let params = [req.params.id];
