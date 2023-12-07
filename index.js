@@ -10,7 +10,7 @@ const sqlite3 = require('sqlite3');
 const express = require('express');
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 const table_name = 'laundry_items'
 const column_id = 'id';
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
    res.send('Up and Running!');
 });
 
-//curl -d "id=1&temp=1&spin=1" -X POST http://localhost:3000/add/
+//curl -d "id=1&temp=1&spin=1" -X POST http://localhost:8080/add/
 app.post('/add/', (req, res, next) => {
    let data = {
       id: req.body.id,
@@ -71,7 +71,7 @@ app.post('/add/', (req, res, next) => {
    });
 });
 
-// // curl -d "id=2&temp=250" -X PATCH http://localhost:3000/update/
+// // curl -d "id=2&temp=250" -X PATCH http://localhost:8080/update/
 // app.patch("/update/", (req, res, next) => {
 //    let data = {
 //       id: req.body.id,
@@ -93,14 +93,13 @@ app.post('/add/', (req, res, next) => {
 //    });
 // });
 
-// curl -d "id=2&count=2" -X PATCH http://localhost:3000/increase_count/
+// curl -d "id=2" -X PATCH http://localhost:8080/increase_count/
 app.patch("/increase_count/", (req, res, next) => {
    let data = {
-      id: req.body.id,
-      count: req.body.count
+      id: req.body.id
    }
-   let sql = `UPDATE ${table_name} set ${column_count} = ? WHERE ${column_id} = ?`;
-   let params = [data.count, data.id];
+   let sql = `UPDATE ${table_name} set ${column_count} = ${column_count} + 1 WHERE ${column_id} = ?`;
+   let params = [data.id];
 
    db.run(sql, params, (err, result) => {
       if (err) {
@@ -108,16 +107,12 @@ app.patch("/increase_count/", (req, res, next) => {
          return;
       }
       res.json({
-         'result': "success",
-         'data': data,
-         'changes': this.changes
+         'result': "success"
       });
    });
 });
 
-
-
-// http://localhost:3000/all_items/
+// http://localhost:8080/all_items/
 app.get('/all_items/', (req, res, next) => {
    let sql = `SELECT * from ${table_name}`
    let params = []
@@ -133,7 +128,7 @@ app.get('/all_items/', (req, res, next) => {
    });
 });
 
-// http://localhost:3000/item/2
+// http://localhost:8080/item/2
 app.get('/item/:id', (req, res, next) => {
    let sql = `SELECT * from ${table_name} WHERE id = ?`
    let params = [req.params.id];
@@ -148,6 +143,23 @@ app.get('/item/:id', (req, res, next) => {
       });
    });
 });
+
+// http://localhost:8080/delete/3
+app.delete('/delete/:id', (req, res, next) => {
+   let sql = `DELETE FROM ${table_name} WHERE id = ?`
+   let params = [req.params.id];
+
+   db.run(sql, params, (err, result) => {
+      if (err) {
+         res.status(400).json({ 'error': res.message });
+         return;
+      }
+
+      res.json({
+         'result': 'success'
+      });
+   });
+})
 
 let server = app.listen(port, () => {
    console.log(`Example listening on port ${port}`)
