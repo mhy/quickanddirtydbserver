@@ -20,6 +20,7 @@ const column_count = 'count';
 const column_name = 'name';
 const column_path = 'path';
 const column_type = 'type';
+const count_initial = 0;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,7 +59,7 @@ app.post('/add/', (req, res, next) => {
       spin: req.body.spin
    }
    let sql = `INSERT INTO ${table_name} (${column_id}, ${column_temp}, ${column_spin}, ${column_count}) VALUES (?,?,?,?)`;
-   let params = [data.id, data.temp, data.spin, 1];
+   let params = [data.id, data.temp, data.spin, count_initial];
 
    db.run(sql, params, (err, result) => {
       if (err) {
@@ -71,7 +72,7 @@ app.post('/add/', (req, res, next) => {
             'id': data.id,
             'temp': data.temp,
             'spin': data.spin,
-            'count': 0
+            'count': count_initial
          }
       });
    });
